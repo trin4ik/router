@@ -1,6 +1,8 @@
 import { Image, Pressable, StyleSheet, Text, View } from "@bacons/react-views";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationOptions } from "@react-navigation/native-stack";
+import * as Clipboard from "expo-clipboard";
+import * as Haptics from "expo-haptics";
 import React from "react";
 import {
   ScrollView,
@@ -13,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RouteNode } from "../Route";
 import { useRoutesContext } from "../context";
 import { Link } from "../link/Link";
+import { getRootURL } from "../link/linking";
 import { matchDeepDynamicRouteName, matchFragmentName } from "../matchers";
 
 const INDENT = 18;
@@ -175,6 +178,14 @@ function FileItem({
             navigation.goBack();
           }
         }}
+        onLongPress={async () => {
+          const prefix = getRootURL();
+          const url =
+            prefix + (href.startsWith("/") ? href.substring(1) : href);
+          await Clipboard.setStringAsync(url);
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          alert(`Copied "${url}" to the clipboard!`);
+        }}
         // @ts-expect-error: disabled not on type
         disabled={disabled}
         asChild
@@ -205,7 +216,7 @@ function FileItem({
           )}
         </Pressable>
       </Link>
-      {route.children.map((child, index) => (
+      {route.children.map((child) => (
         <FileItem
           key={child.contextKey}
           route={child}
